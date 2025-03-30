@@ -1,29 +1,39 @@
 import scrapy
-from scrapy import Item
+#import datetime
 
-#from carscraper.carscraper.items import CarItem
-class CarSpider(scrapy.Spider):
-    name = "cars"
-    custom_settings = {'FEED_FORMAT': {'data.csv':{'format':'csv'}}}
-    def start_requests(self):
-        url = ''
-        yield scrapy.Request(url=url, callback=self.parse)
-    start_urls = [
-        'https://www.autoria.pl/pojazdy-autow/pojazdy-moczne/autobusy-moczne'
-    ]
+class CarspiderSpider(scrapy.Spider):
+    name = "carspider"
+    allowed_domains = ["auto.ria.com"]
+    start_urls = ["https://auto.ria.com/car/used/"]
+
     def parse(self, response):
-        products = response.css("div.product_main")
+        # fetch('https://auto.ria.com/car/used/')
+        cars = response.css('section.ticket-item')
+        for car in cars:
+            relative_url = car.css(".address::attr(href)").get()
+            #car = response.css('div.ticket-status-0')
+            #price = car.css("div.price_value strong::text").get()
+            #otodometr = int(car.css("span.size18::text").get())*1000
+            #username = car.css("h4.seller_info_name a::text").get()
+            #image_url =
 
-        car_item = CarItem()
-        car_item['url'] = response.url
-        car_item['title'] = products.css("h2.product_title a::text").get()
-        car_item['price_usd'] = products.css("p.price_color::text").get()
-        car_item['odometer'] = products.css("p.product_odometer::text").get()
-        car_item['username'] = products.css("p.product_author a::text").get()
-        car_item['phone_number'] = products.css("p.product_phone::text").get()
-        car_item['image_url'] = products.css("div.product_img img::attr(src)").get()
-        car_item['image_count'] = len(products.css("div.product_img img::attr(src)"))
-        car_item['car_number'] = products.css("p.product_car_number::text").get()
-        car_item['car_vin'] = products.css("p.product_car_vin::text").get()
-        car_item['datetime_found'] = response.css("p.product_date::text").get()
-        yield car_item
+
+            title = car.css("h1.head::attr(title)").get()
+
+            # yield{
+            #     #'title' : car.css('a.address span.blue.bold::text').get().strip(),
+            #     'title' : car.css('a.address span.blue.bold::text').get(),
+            #     'price' : car.css(".price-ticket::attr(data-main-price)").get(),
+            #     #'otodometr' : int(car.css("li.item-char.js-race::text").get().strip(' тыс. км '))*1000,
+            #     'otodometr' : car.css("li.item-char.js-race::text").get(),
+            #     #'car_vin' : car.css('div.base_information span.label-vin span::text').get().strip(),
+            #     'car_vin' : car.css('div.base_information span.label-vin span::text').get(),
+            #     'link' : car.css(".address::attr(href)").get()
+            # }
+        car_url = response.css("a.page-link.js-next::attr(href)").get()
+
+        if car_url is not None:
+            yield response.follow(car_url, callback=self.parse_car_page)
+        pass
+    def parse_car_page(self, response):
+        pass

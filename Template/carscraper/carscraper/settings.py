@@ -7,7 +7,7 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = "carscraper"
+BOT_NAME = "carcarscraper"
 
 SPIDER_MODULES = ["carscraper.spiders"]
 NEWSPIDER_MODULE = "carscraper.spiders"
@@ -44,15 +44,15 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    "carscraper.middlewares.CarscraperSpiderMiddleware": 543,
-#}
+SPIDER_MIDDLEWARES = {
+   "carscraper.middlewares.CarscraperSpiderMiddleware": 543,
+}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    "carscraper.middlewares.CarscraperDownloaderMiddleware": 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   "carscraper.middlewares.CarscraperDownloaderMiddleware": 543,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -62,9 +62,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "carscraper.pipelines.CarscraperPipeline": 300,
-#}
+ITEM_PIPELINES = {
+   "carscraper.pipelines.CarscraperPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

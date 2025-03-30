@@ -4,7 +4,7 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
+import base64
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
@@ -101,3 +101,8 @@ class CarscraperDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info("Spider opened: %s" % spider.name)
+
+class MyProxyMiddleware:
+    def process_request(self, request, spider):
+        request.meta['proxy'] = 'http://172.16.31.10:8080'
+
