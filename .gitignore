@@ -24,7 +24,6 @@ debug_page.html
 .idea/
 # Scrapy
 .scrapy/              # Scrapy кеш
-debug_page.html
 # Docker
 .dockerignore
 run_scraper.py
