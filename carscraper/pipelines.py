@@ -20,25 +20,27 @@ class PostgreSQLPipeline:
 
     TABLE_NAME = "car_products"
 
-    def __init__(self, database_url: str):
+    def __init__(self, database_url: str, crawler=None):
         self.database_url = database_url
         self.conn = None
         self.cur = None
-
+        self.crawler = crawler
+        self.spider = crawler.spider if crawler else None  # Store spider reference
     # --------------------------------------------------------------------- #
     # Scrapy hooks
     # --------------------------------------------------------------------- #
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls,crawler):
         db_url = crawler.settings.get("DATABASE_URL") or os.getenv("DATABASE_URL")
-        return cls(db_url)
+        return cls(db_url, crawler)
 
-    def open_spider(self, spider):
+    def open_spider(self,spider):
+        # No need to check for spider parameter since we store it in __init__
         self.conn = psycopg2.connect(self.database_url)
         self.cur = self.conn.cursor()
-        self._ensure_table(spider)
+        self._ensure_table(self.spider)
 
-    def close_spider(self, spider):
+    def close_spider(self,spider):  # Keep for interface compatibility
         if self.conn:
             self.cur.close()
             self.conn.close()
@@ -46,7 +48,7 @@ class PostgreSQLPipeline:
     # --------------------------------------------------------------------- #
     # Item processing
     # --------------------------------------------------------------------- #
-    def process_item(self, item, spider):
+    def process_item(self, item,spider):
         ad = ItemAdapter(item)
         url = ad.get("url")
 
@@ -59,21 +61,22 @@ class PostgreSQLPipeline:
 
             if row:
                 self._update_item(ad, row[0])
-                spider.logger.info(f"📝 Updated: {url}")
+                # Додайте ID в лог, щоб бачити, що оновлюється саме старий запис
+                self.spider.logger.info(f"📝 Updated [ID:{row[0]}]: {url}")
             else:
                 self._insert_item(ad)
-                spider.logger.info(f"✅ Inserted: {url}")
+                self.spider.logger.info(f"✅ Inserted [NEW]: {url}")
 
             self.conn.commit()
             return item
         except psycopg2.Error as e:
             self.conn.rollback()  # ← ВАЖЛИВО!
-            spider.logger.error(f"Database error: {e}")
+            self.spider.logger.error(f"Database error: {e}")
             raise DropItem(f"Database error: {e}")
 
         except Exception as e:
             self.conn.rollback()  # ← ВАЖЛИВО!
-            spider.logger.error(f"General error: {e}")
+            self.spider.logger.error(f"General error: {e}")
             raise DropItem(f"Error: {e}")
 
     # ------------------------------------------------------------------ #
@@ -105,7 +108,7 @@ class PostgreSQLPipeline:
             ad.get("image_count"),
             ad.get("car_number"),
             ad.get("car_vin"),
-            datetime.utcnow(),
+            datetime.now(),
         )
         placeholders = ", ".join(["%s"] * len(cols))
         self.cur.execute(
@@ -126,7 +129,7 @@ class PostgreSQLPipeline:
                 image_count    = %s,
                 car_number     = %s,
                 car_vin        = %s,
-                updated_at     = %s
+                datetime_updated     = %s
             WHERE id = %s
             """,
             (
@@ -139,7 +142,7 @@ class PostgreSQLPipeline:
                 ad.get("image_count"),
                 ad.get("car_number"),
                 ad.get("car_vin"),
-                datetime.utcnow(),
+                datetime.now(),
                 item_id,
             ),
         )
@@ -183,7 +186,7 @@ class PostgreSQLPipeline:
               car_number      TEXT,
               car_vin         TEXT,
               datetime_found  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-              updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+              datetime_updated      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             """
         )

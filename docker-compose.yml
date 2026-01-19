@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:13
-    container_name: autoria_postgres
+    container_name: scrapy_postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -13,7 +13,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - autoria_network
+      - scrapy_network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
@@ -27,7 +27,7 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
-    container_name: autoria_scrapy
+    container_name: scrapy_selenium
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - POSTGRES_HOST=postgres
@@ -46,7 +46,7 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - autoria_network
+      - scrapy_network
     restart: unless-stopped
     # Запускаємо scheduler замість прямого запуску spider
     command: >
@@ -66,7 +66,7 @@ services:
     depends_on:
       - postgres
     networks:
-      - autoria_network
+      - scrapy_network
     restart: unless-stopped
     profiles:
       - admin
@@ -75,5 +75,5 @@ volumes:
   postgres_data:
 
 networks:
-  autoria_network:
+  scrapy_network:
     driver: bridge

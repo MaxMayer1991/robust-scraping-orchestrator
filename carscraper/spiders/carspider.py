@@ -217,17 +217,16 @@ class CarspiderSpider(scrapy.Spider):
 
             loader = ItemLoader(item=CarItem(), response=response)
             loader.add_value('url', response.url)
-            loader.add_css('title', 'h1.head::text')
-            loader.add_css('price_usd',
-                           'div.price_value strong::text, div.price_value--additional span.i-block span::text')
-            loader.add_css('odometer', 'div.base-information span.size18::text')
-            loader.add_css('username',
-                           'div.seller_info_name.bold a.sellerPro::text, h4.seller_info_name a::text, div.seller_info_name::text')
-            loader.add_value('phone_number', phone_number)
-            loader.add_css('image_url', 'div.photo-620x465 picture img::attr(src)')
-            loader.add_css('image_count', 'span.count span.mhide::text')
-            loader.add_css('car_number', 'span.state-num::text')
-            loader.add_css('car_vin', 'span.label-vin::text, div.t-check span.vin-code::text')
+            loader.add_css('title', 'div#basicInfoTitle h1::text, div#sideTitleTitle span::text')
+            loader.add_css('price_usd', 'div#basicInfoPrice strong::text, div#sidePrice strong::text')
+            loader.add_css('odometer', 'div#basicInfoTableMainInfo0 span::text')
+            loader.add_css('username', 'div#sellerInfoUserName span::text')
+            if phone_number:
+                loader.add_value('phone_number', phone_number)
+            loader.add_css('image_url', 'img::attr(data-src)')
+            loader.add_css('image_count', 'span.common-badge.alpha.medium span::text')
+            loader.add_css('car_number', 'div.car-number span::text')
+            loader.add_css('car_vin', 'span#badgesVin span::text')
 
             yield loader.load_item()
 
@@ -304,12 +303,13 @@ class CarspiderSpider(scrapy.Spider):
         try:
             # Різні селектори для кнопки показу телефону
             button_selectors = [
-                'div#phonesBlock .link-dotted',
-                'a.toggle-phone-number-button',
-                '.show-phone-button',
-                'button[onclick*="phone"]',
-                '.phone-reveal',
-                '[data-toggle="phone"]'
+                "button.size-large.conversion[data-action='showBottomPopUp']"
+                # 'div#phonesBlock .link-dotted',
+                # 'a.toggle-phone-number-button',
+                # '.show-phone-button',
+                # 'button[onclick*="phone"]',
+                # '.phone-reveal',
+                # '[data-toggle="phone"]'
             ]
 
             for selector in button_selectors:
@@ -346,11 +346,12 @@ class CarspiderSpider(scrapy.Spider):
         """Шукаємо телефон після кліку на кнопку"""
         try:
             phone_selectors = [
-                'a[href^="tel:"]',
-                '#phonesBlock a',
-                '.popup-successful-call a',
-                '.phone-popup a',
-                '[class*="phone-number"]'
+                'div.popup-inner button.size-large.conversion span'
+                # 'a[href^="tel:"]',
+                # '#phonesBlock a',
+                # '.popup-successful-call a',
+                # '.phone-popup a',
+                # '[class*="phone-number"]'
             ]
 
             for selector in phone_selectors:
@@ -399,4 +400,3 @@ class CarspiderSpider(scrapy.Spider):
 
         except Exception as e:
             self.logger.error(f"Error closing drivers: {e}")
-        # ✅ НЕ викликаємо super().close(reason) - цього методу не існує!

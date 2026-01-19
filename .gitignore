@@ -12,10 +12,10 @@ pyvenv.cfg
 # Logs
 logs/
 *.log
-
+__pycache__/
 ../.venv
 .env
-venv
+.venv
 pip-selfcheck.json
 API_LINK_PROXY.txt
 data.csv
@@ -27,3 +27,9 @@ debug_page.html
 debug_page.html
 # Docker
 .dockerignore
+run_scraper.py
+run_spider_direct.py
+test_spider.py
+dumps
+data
+logs
